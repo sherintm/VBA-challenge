@@ -1,0 +1,102 @@
+' A subroutine to analyse the changes in stock price and volume per year.
+
+Sub WallStreetAnalysis()
+
+    Dim ws As Worksheet
+    Dim LastRow As Long
+    Dim StockVolume As Variant
+    Dim i As Long
+    Dim TickerCount As Long
+    Dim OpenPrice As Double
+    Dim ClosePrice As Double
+    Dim YearlyChange As Double
+    Dim row As Integer
+    Dim PercentRange As Range
+    Dim Max As Variant
+    Dim Min As Variant
+    
+  
+    OpenPrice = 0
+    ClosePrice = 0
+
+    'Iterate through Worksheets
+    For Each ws In Worksheets
+        
+        LastRow = ws.Cells(Rows.Count, "A").End(xlUp).row
+ 
+        ws.Cells(1, 9).Value = "Ticker"
+        ws.Cells(1, 10).Value = "Yearly Change"
+        ws.Cells(1, 11).Value = "Percent Change"
+        ws.Cells(1, 12).Value = "Total Stock Volume"
+                
+        TickerCount = 2
+        ws.Cells(TickerCount, 9).Value = ws.Cells(2, 1).Value
+        OpenPrice = ws.Cells(2, 3).Value
+        StockVolume = 0
+        
+        'Iterate through each row
+        For i = 2 To LastRow
+            StockVolume = StockVolume + ws.Cells(i, 7).Value
+
+            If (ws.Cells(i, 1).Value <> ws.Cells(i + 1, 1)) Then
+                
+                ClosePrice = ws.Cells(i, 6).Value
+                YearlyChange = ClosePrice - OpenPrice
+                
+                'Conditional formatting
+                If YearlyChange < 0 Then
+                    ws.Cells(TickerCount, 10).Interior.ColorIndex = 3
+                Else
+                    ws.Cells(TickerCount, 10).Interior.ColorIndex = 4
+                End If
+                
+                ws.Cells(TickerCount, 10).Value = YearlyChange
+                
+                'Check for 0 values
+                If OpenPrice Then
+                    ws.Cells(TickerCount, 11).Value = YearlyChange / OpenPrice
+                Else
+                    ws.Cells(TickerCount, 11).Value = 0
+                End If
+                
+                ws.Cells(TickerCount, 11).NumberFormat = "0.00%"
+                
+                ws.Cells(TickerCount, 12).Value = StockVolume
+            
+                TickerCount = TickerCount + 1
+                ws.Cells(TickerCount, 9).Value = ws.Cells(i + 1, 1)
+                OpenPrice = ws.Cells(i + 1, 3).Value
+                StockVolume = 0
+
+            End If
+        Next i
+    
+    ws.Cells(1, 16).Value = "Ticker"
+    ws.Cells(1, 17).Value = "Value"
+    ws.Cells(2, 15).Value = "Greatest % Increase"
+    ws.Cells(3, 15).Value = "Greatest % Decrease"
+    ws.Cells(4, 15).Value = "Greatest Total Volume"
+    ws.Columns(15).EntireColumn.AutoFit
+    
+    Max = WorksheetFunction.Max(ws.Columns("K"))
+    Min = WorksheetFunction.Min(ws.Columns("K"))
+    MaxVolume = WorksheetFunction.Max(ws.Columns("L"))
+
+    ws.Cells(2, 17).Value = Max
+    ws.Cells(2, 17).NumberFormat = "0.00%"
+    ws.Cells(3, 17).Value = Min
+    ws.Cells(3, 17).NumberFormat = "0.00%"
+    ws.Cells(4, 17).Value = MaxVolume
+    
+    ws.Cells(2, 16).Value = ws.Cells(WorksheetFunction.Match(Max, ws.Columns("K"), 0), 9).Value
+    ws.Cells(3, 16).Value = ws.Cells(WorksheetFunction.Match(Min, ws.Columns("K"), 0), 9).Value
+    ws.Cells(4, 16).Value = ws.Cells(WorksheetFunction.Match(MaxVolume, ws.Columns("L"), 0), 9).Value
+    
+    Next ws
+
+End Sub
+
+
+
+
+
